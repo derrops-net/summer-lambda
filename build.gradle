@@ -1,0 +1,66 @@
+plugins {
+    id 'groovy'
+    id 'java-gradle-plugin'
+    id 'maven-publish'
+    id 'com.gradle.plugin-publish' version '0.14.0'
+}
+
+apply plugin: 'idea'
+
+group 'net.derrops'
+version '1.0.1-SNAPSHOT'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+ext {
+    awsSdkVersion = '1.12.26'
+    awsSdkVersionV2 = '2.15.0'
+}
+
+dependencies {
+
+    implementation 'org.codehaus.groovy:groovy-all:2.5.10'
+    implementation 'com.google.guava:guava:23.0'
+    implementation 'commons-io:commons-io:2.11.0'
+
+    implementation platform("software.amazon.awssdk:bom:${awsSdkVersionV2}")
+
+    implementation 'software.amazon.awssdk:sts'
+    implementation 'software.amazon.awssdk:s3'
+    implementation 'software.amazon.awssdk:lambda'
+
+    implementation gradleApi()
+    testCompileOnly group: 'junit', name: 'junit', version: '4.12'
+
+
+}
+
+idea {
+    module {
+        downloadJavadoc = true
+        downloadSources = true
+    }
+}
+
+
+pluginBundle {
+    website = 'https://www.derrops.org'
+    vcsUrl = 'https://github.com/derrops-org/summer-lambda'
+    tags = ['aws', 'lambda', 'java']
+}
+
+gradlePlugin {
+    plugins {
+        summerLambda {
+            id = 'net.derrops.summer-lambda'
+            implementationClass = 'net.derrops.SummerLambdaPlugin'
+            displayName = "Summer Lambda"
+            description = "A Plugin for developing Lambda Java Projects on AWS"
+        }
+    }
+}
