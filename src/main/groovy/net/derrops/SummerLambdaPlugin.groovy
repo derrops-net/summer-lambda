@@ -1,6 +1,6 @@
 package net.derrops
 
-
+import net.derrops.task.DescribeLambdaTask
 import net.derrops.util.GenericUtils
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -165,21 +165,34 @@ class SummerLambdaPlugin implements Plugin<Project> {
 
         }
 
+
+        def describeFunction = project.tasks.register("describeFunction", DescribeLambdaTask.class) { task ->
+            task.lambda = extension.function.name
+            task.describeFunction = new File(project.buildDir, "derrops/" + "function-info.json")
+        }
+
+
         def publishFunction = project.tasks.register("publishFunction", net.derrops.task.PublishFunctionTask.class) { publishFunction ->
 
             List<Task> layerVersionTasks = LAYERS.collect{project.tasks.findByName("publishLambdaLayerVersion-${it}")}
+
             def publishLambdaTask = project.tasks.findByName("publishLambda")
+            def describeFunctionTask = project.tasks.findByName("describeFunction")
 
             LAYERS.forEach{dependsOn(layerVersionTasks)}
             dependsOn(publishLambdaTask)
+            dependsOn(describeFunctionTask)
 
+            publishFunction.describeFunction = describeFunctionTask.outputs.files.singleFile
             publishFunction.lambda = extension.function.name
             publishFunction.layerVersionInfoFiles = layerVersionTasks.collect{it.outputs.files.singleFile}
             publishFunction.lambdaPublishInfoFile = publishLambdaTask.outputs.files.singleFile
             publishFunction.handler = extension.function.handler
             publishFunction.memory = extension.function.memory
             publishFunction.runtime = extension.function.runtime
+            publishFunction.lambdaTimeout = extension.function.timeout
             publishFunction.role = extension.function.role
+            publishFunction.deployOutput = new File(project.buildDir, "derrops/" + "lambda-deploy-info.json")
 
         }
 

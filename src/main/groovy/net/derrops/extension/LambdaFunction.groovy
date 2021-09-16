@@ -17,6 +17,11 @@ class LambdaFunction {
     String runtime = "java11"
 
     /**
+     * The timeout of the function in seconds, defaults to 12
+     */
+    Integer timeout = 12
+
+    /**
      * The IAM role of the function
      */
     String role
