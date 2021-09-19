@@ -1,6 +1,8 @@
 package net.derrops
 
 import net.derrops.task.DescribeLambdaTask
+import net.derrops.task.UpdateFunctionCodeTask
+import net.derrops.task.UpdateFunctionConfigurationTask
 import net.derrops.util.GenericUtils
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -168,33 +170,80 @@ class SummerLambdaPlugin implements Plugin<Project> {
 
         def describeFunction = project.tasks.register("describeFunction", DescribeLambdaTask.class) { task ->
             task.lambda = extension.function.name
-            task.describeFunction = new File(project.buildDir, "derrops/" + "function-info.json")
+            task.describeCode = new File(project.buildDir, "derrops/" + "lambda-code-info.json")
+            task.describeConfiguration = new File(project.buildDir, "derrops/" + "lambda-config-info.json")
         }
 
 
-        def publishFunction = project.tasks.register("publishFunction", net.derrops.task.PublishFunctionTask.class) { publishFunction ->
+
+        def updateConfiguration = project.tasks.register("updateConfiguration", UpdateFunctionConfigurationTask.class) { task ->
 
             List<Task> layerVersionTasks = LAYERS.collect{project.tasks.findByName("publishLambdaLayerVersion-${it}")}
 
             def publishLambdaTask = project.tasks.findByName("publishLambda")
             def describeFunctionTask = project.tasks.findByName("describeFunction")
+            task.dependsOn(describeFunction)
+            task.dependsOn(publishLambdaTask)
 
-            LAYERS.forEach{dependsOn(layerVersionTasks)}
-            dependsOn(publishLambdaTask)
-            dependsOn(describeFunctionTask)
+            task.lambda = extension.function.name
+            task.describeConfiguration = describeFunctionTask.getOutputs().getFiles().getFiles().find {it.name == "lambda-config-info.json"}
+            task.lambdaPublishInfoFile = publishLambdaTask.outputs.files.singleFile
+            task.updateFunctionConfigurationResponseFile = new File(project.buildDir, "derrops/" + lambdaArchive.name + "-update-config.json")
 
-            publishFunction.describeFunction = describeFunctionTask.outputs.files.singleFile
-            publishFunction.lambda = extension.function.name
-            publishFunction.layerVersionInfoFiles = layerVersionTasks.collect{it.outputs.files.singleFile}
-            publishFunction.lambdaPublishInfoFile = publishLambdaTask.outputs.files.singleFile
-            publishFunction.handler = extension.function.handler
-            publishFunction.memory = extension.function.memory
-            publishFunction.runtime = extension.function.runtime
-            publishFunction.lambdaTimeout = extension.function.timeout
-            publishFunction.role = extension.function.role
-            publishFunction.deployOutput = new File(project.buildDir, "derrops/" + "lambda-deploy-info.json")
+
+            task.lambda = extension.function.name
+            task.layerVersionInfoFiles = layerVersionTasks.collect{it.outputs.files.singleFile}
+            task.lambdaPublishInfoFile = publishLambdaTask.outputs.files.singleFile
+            task.handler = extension.function.handler
+            task.memory = extension.function.memory
+            task.runtime = extension.function.runtime
+            task.lambdaTimeout = extension.function.timeout
+            task.role = extension.function.role
+
 
         }
+
+
+        def updateCode = project.tasks.register("updateCode", UpdateFunctionCodeTask.class) { task ->
+            def publishLambdaTask = project.tasks.findByName("publishLambda")
+            def describeFunctionTask = project.tasks.findByName("describeFunction")
+            def updateConfigurationTask = project.tasks.findByName("updateConfiguration")
+            task.mustRunAfter(updateConfigurationTask)
+
+            task.dependsOn(publishLambdaTask)
+            task.dependsOn(describeFunctionTask)
+
+            task.lambda = extension.function.name
+            task.describeCode = describeFunctionTask.getOutputs().getFiles().getFiles().find {it.name == "lambda-code-info.json"}
+            task.lambdaPublishInfoFile = publishLambdaTask.outputs.files.singleFile
+
+            task.updateFunctionCodeResponseFile = new File(project.buildDir, "derrops/" + lambdaArchive.name + "-update-code.json")
+        }
+
+//
+//        def publishFunction = project.tasks.register("publishFunction", net.derrops.task.PublishFunctionTask.class) { publishFunction ->
+//
+//            List<Task> layerVersionTasks = LAYERS.collect{project.tasks.findByName("publishLambdaLayerVersion-${it}")}
+//
+//            def publishLambdaTask = project.tasks.findByName("publishLambda")
+//            DescribeLambdaTask describeFunctionTask = project.tasks.findByName("describeFunction")
+//
+//            LAYERS.forEach{dependsOn(layerVersionTasks)}
+//            dependsOn(publishLambdaTask)
+//            dependsOn(describeFunctionTask)
+//
+//            publishFunction.describeFunction = describeFunctionTask.describeConfiguration
+//            publishFunction.lambda = extension.function.name
+//            publishFunction.layerVersionInfoFiles = layerVersionTasks.collect{it.outputs.files.singleFile}
+//            publishFunction.lambdaPublishInfoFile = publishLambdaTask.outputs.files.singleFile
+//            publishFunction.handler = extension.function.handler
+//            publishFunction.memory = extension.function.memory
+//            publishFunction.runtime = extension.function.runtime
+//            publishFunction.lambdaTimeout = extension.function.timeout
+//            publishFunction.role = extension.function.role
+//            publishFunction.deployOutput = new File(project.buildDir, "derrops/" + "lambda-deploy-info.json")
+//
+//        }
 
     }
 

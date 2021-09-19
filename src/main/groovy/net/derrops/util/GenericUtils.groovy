@@ -1,5 +1,7 @@
 package net.derrops.util
 
+import java.nio.charset.StandardCharsets
+
 class GenericUtils {
 
     static <T> List<List<T>> split(List<T> list, int size)
@@ -28,5 +30,31 @@ class GenericUtils {
 
         return result;
     }
+
+    static Map<String, String> getQueryParamsMap(URL url) throws UnsupportedEncodingException {
+
+        if (url == null) {
+            return Collections.EMPTY_MAP;
+        }
+
+        // Get Query part of the url
+        String queryPart = url.getQuery();
+
+        if (queryPart == null || queryPart.isEmpty()) {
+            return Collections.EMPTY_MAP;
+        }
+
+        Map<String, String> queryParams = new HashMap<String, String>();
+
+        String[] pairs = queryPart.split("&");
+        for (String pair : pairs) {
+            String[] keyValuePair = pair.split("=");
+
+            queryParams.put(URLDecoder.decode(keyValuePair[0], StandardCharsets.UTF_8.name()),
+                    URLDecoder.decode(keyValuePair[1], StandardCharsets.UTF_8.name()));
+        }
+        return queryParams;
+    }
+
 
 }

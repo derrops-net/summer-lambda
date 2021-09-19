@@ -2,7 +2,9 @@ package net.derrops.task
 
 import groovy.json.JsonGenerator
 import groovy.json.JsonSlurper
+import net.derrops.task.info.LayerVersionInfo
 import net.derrops.task.info.PublishFunctionInfo
+import net.derrops.task.info.PublishInfo
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
@@ -56,8 +58,8 @@ class PublishFunctionTask extends DefaultTask {
 
 
         def jsonSlurper = new JsonSlurper()
-        net.derrops.task.info.PublishInfo lambdaPublishInfo = jsonSlurper.parse(lambdaPublishInfoFile) as net.derrops.task.info.PublishInfo
-        List<net.derrops.task.info.LayerVersionInfo> layerPublishInfo = layerVersionInfoFiles.collect{jsonSlurper.parse(it) as net.derrops.task.info.LayerVersionInfo}
+        PublishInfo lambdaPublishInfo = jsonSlurper.parse(lambdaPublishInfoFile) as PublishInfo
+        List<LayerVersionInfo> layerPublishInfo = layerVersionInfoFiles.collect{jsonSlurper.parse(it) as LayerVersionInfo}
 
 
         LambdaClient client = LambdaClient.builder().build()
