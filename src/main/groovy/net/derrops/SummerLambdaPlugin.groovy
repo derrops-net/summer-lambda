@@ -190,7 +190,6 @@ class SummerLambdaPlugin implements Plugin<Project> {
             task.lambdaPublishInfoFile = publishLambdaTask.outputs.files.singleFile
             task.updateFunctionConfigurationResponseFile = new File(project.buildDir, "derrops/" + lambdaArchive.name + "-update-config.json")
 
-
             task.lambda = extension.function.name
             task.layerVersionInfoFiles = layerVersionTasks.collect{it.outputs.files.singleFile}
             task.lambdaPublishInfoFile = publishLambdaTask.outputs.files.singleFile
@@ -214,10 +213,19 @@ class SummerLambdaPlugin implements Plugin<Project> {
             task.dependsOn(describeFunctionTask)
 
             task.lambda = extension.function.name
-            task.describeCode = describeFunctionTask.getOutputs().getFiles().getFiles().find {it.name == "lambda-code-info.json"}
+            task.describeCode = new File(project.buildDir, "derrops/" + "lambda-code-info.json")
             task.lambdaPublishInfoFile = publishLambdaTask.outputs.files.singleFile
-
             task.updateFunctionCodeResponseFile = new File(project.buildDir, "derrops/" + lambdaArchive.name + "-update-code.json")
+        }
+
+        // should this be tagged
+        def deploy = project.tasks.register("deploy") { task->
+
+            Task updateCodeTask = project.tasks.findByName("updateCode")
+            Task updateConfigurationTask = project.tasks.findByName("updateConfiguration")
+
+            task.dependsOn(updateCodeTask)
+            task.dependsOn(updateConfigurationTask)
         }
 
 //

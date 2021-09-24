@@ -1,7 +1,10 @@
 package net.derrops.task
 
+import groovy.json.JsonGenerator
 import groovy.json.JsonSlurper
 import net.derrops.task.info.PublishInfo
+import net.derrops.task.info.UpdateCodeInfo
+import org.codehaus.groovy.runtime.InvokerHelper
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
@@ -28,6 +31,9 @@ class UpdateFunctionCodeTask extends DefaultTask {
     @OutputFile
     File updateFunctionCodeResponseFile
 
+//    @OutputFile
+//    File updateCodeInfo
+
     UpdateFunctionCodeTask(){
         outputs.upToDateWhen {
             boolean updateToDate = updateFunctionCodeResponseFile.exists() && describeCode.exists() && updateFunctionCodeResponseFile.text == describeCode.text
@@ -38,8 +44,6 @@ class UpdateFunctionCodeTask extends DefaultTask {
     @TaskAction
     void updateFunctionCode() {
 
-        println ":updateCode - IN UPDATE CODE DOING WORK"
-
         if (updateFunctionCodeResponseFile.exists() && describeCode.exists() && updateFunctionCodeResponseFile.text == describeCode.text) {
             logger.error("WHY IS THIS EXECUTING IF UP TO DATE?")
             return
@@ -47,8 +51,6 @@ class UpdateFunctionCodeTask extends DefaultTask {
 
         def jsonSlurper = new JsonSlurper()
         PublishInfo lambdaPublishInfo = jsonSlurper.parse(lambdaPublishInfoFile) as net.derrops.task.info.PublishInfo
-
-        println "lambdaPublishInfoFile.lastModified()=${lambdaPublishInfoFile.lastModified()}"
 
         LambdaClient client = LambdaClient.builder().build()
 
@@ -73,10 +75,28 @@ class UpdateFunctionCodeTask extends DefaultTask {
                 .build()
 
         // update the describe task as well
-        updateFunctionCodeResponseFile.text = enrichedResponse.code().toString()
+        //updateFunctionCodeResponseFile.text = enrichedResponse.code().toString()
         describeCode.text =                   enrichedResponse.code().toString()
 
+        updateFunctionCodeResponseFile.text = createCodeInfo(lambdaPublishInfo, updateFunctionCodeResponse)
     }
 
 
+    String createCodeInfo(PublishInfo publishInfo, UpdateFunctionCodeResponse updateFunctionCodeResponse) {
+
+        UpdateCodeInfo updateCodeInfo = new UpdateCodeInfo()
+
+        use(InvokerHelper) {
+            updateCodeInfo.setProperties(publishInfo.properties)
+        }
+
+        updateCodeInfo.codeSha256 = updateFunctionCodeResponse.codeSha256()
+        updateCodeInfo.lastModified = updateFunctionCodeResponse.lastModified()
+
+        def generator = new JsonGenerator.Options()
+                .excludeNulls()
+                .build()
+
+        return generator.toJson(updateCodeInfo)
+    }
 }

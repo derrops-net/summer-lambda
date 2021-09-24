@@ -37,27 +37,26 @@ class DescribeLambdaTask extends DefaultTask {
         GetFunctionResponse response = client.getFunction(getFunctionRequest)
 
         GetFunctionResponse updatedResponse = response.toBuilder()
-            .configuration(response.configuration().toBuilder().revisionId(null)
+            .configuration(response.configuration().toBuilder()
+                    .revisionId(null)
                     .lastModified(null)
-                    .build())
+            .build())
             .code(response.code().toBuilder().location(
                     response.code().location().split("\\?")[0] // only include the repository code
             ).build())
             .build()
 
-        println updatedResponse.code().toString()
 
-        println "describeCode.text=\n${describeCode.text}\n\n\n"
-        println "updatedResponse.code()=\n${updatedResponse.code().toString()}"
-
-        if (describeCode.exists() && describeCode.text != updatedResponse.code().toString()) {
-            println "!!!CODE CHANGED!!!!!"
+        if (!describeCode.exists() || describeCode.exists() && describeCode.text != updatedResponse.code().toString()) {
+            logger.info("code has changed")
             describeCode.text = updatedResponse.code().toString()
         }else{
             println "!!!NO CHANGE!!!!!"
         }
 
         describeConfiguration.text = updatedResponse.configuration().toString()
+
+
 
     }
 

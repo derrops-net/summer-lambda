@@ -81,15 +81,16 @@ class UpdateFunctionConfigurationTask extends DefaultTask {
                 .build()
 
         GetFunctionResponse response = client.getFunction(getFunctionRequest)
-        println response
 
         GetFunctionResponse enrichedResponse = response.toBuilder()
-                .configuration(response.configuration().toBuilder().revisionId(null)
+                .configuration(response.configuration().toBuilder()
+                        .revisionId(null)
                         .lastModified(null)
                         .build())
                 .build()
 
-        println enrichedResponse
+        println describeConfiguration.text
+        println enrichedResponse.configuration()
 
         // update the describe task as well
         updateFunctionConfigurationResponseFile.text = enrichedResponse.configuration().toString()
