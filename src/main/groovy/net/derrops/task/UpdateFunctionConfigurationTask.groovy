@@ -48,13 +48,6 @@ class UpdateFunctionConfigurationTask extends DefaultTask {
     List<File> layerVersionInfoFiles
 
 
-    UpdateFunctionConfigurationTask() {
-        outputs.upToDateWhen {
-            boolean updateToDate = updateFunctionConfigurationResponseFile.exists() && describeConfiguration.exists() && updateFunctionConfigurationResponseFile.text == describeConfiguration.text
-            return updateToDate
-        }
-    }
-
     @TaskAction
     void updateFunctionConfiguration() {
 
@@ -88,9 +81,6 @@ class UpdateFunctionConfigurationTask extends DefaultTask {
                         .lastModified(null)
                         .build())
                 .build()
-
-        println describeConfiguration.text
-        println enrichedResponse.configuration()
 
         // update the describe task as well
         updateFunctionConfigurationResponseFile.text = enrichedResponse.configuration().toString()
