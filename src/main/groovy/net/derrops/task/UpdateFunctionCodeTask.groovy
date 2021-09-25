@@ -35,19 +35,14 @@ class UpdateFunctionCodeTask extends DefaultTask {
 //    File updateCodeInfo
 
     UpdateFunctionCodeTask(){
-        outputs.upToDateWhen {
-            boolean updateToDate = updateFunctionCodeResponseFile.exists() && describeCode.exists() && updateFunctionCodeResponseFile.text == describeCode.text
-            return updateToDate
-        }
+//        outputs.upToDateWhen {
+//            boolean updateToDate = updateFunctionCodeResponseFile.exists() && describeCode.exists() && updateFunctionCodeResponseFile.text == describeCode.text
+//            return updateToDate
+//        }
     }
 
     @TaskAction
     void updateFunctionCode() {
-
-        if (updateFunctionCodeResponseFile.exists() && describeCode.exists() && updateFunctionCodeResponseFile.text == describeCode.text) {
-            logger.error("WHY IS THIS EXECUTING IF UP TO DATE?")
-            return
-        }
 
         def jsonSlurper = new JsonSlurper()
         PublishInfo lambdaPublishInfo = jsonSlurper.parse(lambdaPublishInfoFile) as net.derrops.task.info.PublishInfo
@@ -76,7 +71,7 @@ class UpdateFunctionCodeTask extends DefaultTask {
 
         // update the describe task as well
         //updateFunctionCodeResponseFile.text = enrichedResponse.code().toString()
-        describeCode.text =                   enrichedResponse.code().toString()
+        //describeCode.text =                   enrichedResponse.code().toString()
 
         updateFunctionCodeResponseFile.text = createCodeInfo(lambdaPublishInfo, updateFunctionCodeResponse)
     }

@@ -46,24 +46,19 @@ class DescribeLambdaTask extends DefaultTask {
             ).build())
             .build()
 
-
-        if (!describeCode.exists() || describeCode.exists() && describeCode.text != updatedResponse.code().toString()) {
-            logger.info("code has changed")
+        if (describeCode.exists() && describeCode.text == updatedResponse.code().toString()) {
+            logger.info("No Code Change")
+        } else {
+            logger.info("No Code Changed")
             describeCode.text = updatedResponse.code().toString()
-        }else{
-            println "!!!NO CODE CHANGE!!!!!"
         }
 
-        if (!describeConfiguration.exists() || describeConfiguration.exists() && describeConfiguration.text != updatedResponse.configuration().toString()) {
-            logger.info("config has changed\n\n\n")
-            println describeConfiguration.text
-            println "--"
-            println updatedResponse.configuration().toString()
+        if (describeConfiguration.exists() && describeConfiguration.text == updatedResponse.configuration().toString()) {
+            logger.info("No Config Change")
+        } else {
+            logger.info("Config Changed")
             describeConfiguration.text = updatedResponse.configuration().toString()
-        }else{
-            println "!!!NO CONFIG CHANGE!!!!!"
         }
-
     }
 
 }
