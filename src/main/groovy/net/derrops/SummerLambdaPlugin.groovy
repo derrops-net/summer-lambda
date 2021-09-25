@@ -182,6 +182,8 @@ class SummerLambdaPlugin implements Plugin<Project> {
 
             def publishLambdaTask = project.tasks.findByName("publishLambda")
             def describeFunctionTask = project.tasks.findByName("describeFunction")
+
+            layerVersionTasks.forEach{task.dependsOn(it.name)}
             task.dependsOn(describeFunction)
             task.dependsOn(publishLambdaTask)
 
